@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from 'react-toastify';
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const BACKEND_URL = "https://cloud-sharing.vercel.app";
 
@@ -9,6 +10,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [isSignup, setIsSignup] = useState(false);
+
+  const navigate = useNavigate(); // Initialize navigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,10 +23,11 @@ const Login = () => {
       if (!isSignup) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("userId", res.data.userId);
-        window.location.href = "/dashboard";
+        navigate("/dashboard"); // Navigate to the dashboard page
       } else {
         toast.success("Signup Successful. Please Login.");
         setIsSignup(false);
+        navigate("/"); // Navigate to the dashboard page
       }
     } catch (err) {
       toast.error(err.response.data.message || "Error occurred");

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
 
 const BACKEND_URL = "https://cloud-sharing.vercel.app";
 
@@ -10,10 +11,12 @@ const Dashboard = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // New state for logout confirmation modal
   const [selectedFileId, setSelectedFileId] = useState(null);
 
   const token = localStorage.getItem("token");
   const fileInputRef = useRef(null);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     fetchFiles();
@@ -78,21 +81,27 @@ const Dashboard = () => {
     }
   };
 
+  const openLogoutModal = () => {
+    setIsLogoutModalOpen(true); // Open the logout confirmation modal
+  };
+
+  const closeLogoutModal = () => {
+    setIsLogoutModalOpen(false); // Close the logout confirmation modal
+  };
+
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      window.location.href = "/";
-    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    navigate("/"); // Redirect to login page after logout
   };
 
   const openDeleteModal = (id) => {
     setSelectedFileId(id);
-    setIsModalOpen(true);  // Open the modal
+    setIsModalOpen(true);  // Open the file delete modal
   };
 
   const closeDeleteModal = () => {
-    setIsModalOpen(false); // Close the modal
+    setIsModalOpen(false); // Close the delete modal
     setSelectedFileId(null);
   };
 
@@ -101,10 +110,10 @@ const Dashboard = () => {
       <div className="bg-white p-10 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-3xl font-extrabold text-gray-700 text-center mb-6">📂 File Sharing Dashboard</h2>
 
-        {/* Logout Button */}
+        {/* Open Logout Modal Button */}
         <button
-          onClick={handleLogout}
-          className="w-full py-3 bg-red-500 text-white font-bold rounded-md hover:bg-red-600 mb-6 transition duration-300"
+          onClick={openLogoutModal}
+          className="w-full py-3 bg-red-500 text-white cursor-pointer font-bold rounded-md hover:bg-red-800 mb-6 transition duration-300"
         >
           Logout
         </button>
@@ -118,7 +127,7 @@ const Dashboard = () => {
 
         {/* File Upload Section */}
         <h3 className="text-lg font-semibold text-gray-700 mb-3">Upload a File</h3>
-        <div className="border-2 border-dashed border-gray-300 p-5 rounded-lg text-center cursor-pointer hover:border-blue-500 transition duration-300">
+        <div className="border-2 border-dashed border-gray-300 p-5 rounded-lg text-center cursor-pointer hover:border-blue-700 transition duration-300">
           <input
             type="file"
             ref={fileInputRef}
@@ -135,7 +144,7 @@ const Dashboard = () => {
         <button
           onClick={uploadFile}
           disabled={loading}
-          className="w-full mt-4 py-3 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-600 disabled:bg-gray-400 transition duration-300"
+          className="w-full mt-4 py-3 bg-blue-500 text-white cursor-pointer font-bold rounded-md hover:bg-blue-600 disabled:bg-gray-400 transition duration-300"
         >
           {loading ? "Uploading..." : "Upload File"}
         </button>
@@ -156,7 +165,7 @@ const Dashboard = () => {
                   <a
                     href={f.url}
                     download={f.filename}
-                    className="px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition duration-300"
+                    className="px-3 py-2 bg-green-500 text-white text-sm cursor-pointer rounded-md hover:bg-green-600 transition duration-300"
                   >
                     Download
                   </a>
@@ -165,7 +174,7 @@ const Dashboard = () => {
                   <button
                     onClick={() => openDeleteModal(f._id)} // Open the delete modal
                     disabled={loading}
-                    className="px-3 py-2 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition duration-300"
+                    className="px-3 py-2 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 cursor-pointer transition duration-300"
                   >
                     Delete
                   </button>
@@ -188,13 +197,38 @@ const Dashboard = () => {
         <div className="flex justify-center space-x-4">
           <button
             onClick={() => deleteFile(selectedFileId)}
-            className="px-4 py-2 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600"
+            className="px-4 py-2 bg-red-500 text-white cursor-pointer font-semibold rounded-md hover:bg-red-900"
           >
             Yes, Delete
           </button>
           <button
             onClick={closeDeleteModal}
-            className="px-4 py-2 bg-gray-500 text-white font-semibold rounded-md hover:bg-gray-600"
+            className="px-4 py-2 bg-gray-500 cursor-pointer text-white font-semibold rounded-md hover:bg-gray-800"
+          >
+            Cancel
+          </button>
+        </div>
+      </Modal>
+
+      {/* Custom Logout Confirmation Modal */}
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onRequestClose={closeLogoutModal}
+        contentLabel="Logout Confirmation"
+        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md mx-auto"
+        overlayClassName="fixed inset-0 bg-opacity-70 backdrop-blur-sm flex items-center justify-center"
+      >
+        <h3 className="text-xl font-semibold text-center mb-4">Are you sure you want to log out?</h3>
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-500 text-white cursor-pointer font-semibold rounded-md hover:bg-red-900"
+          >
+            Yes, Log Out
+          </button>
+          <button
+            onClick={closeLogoutModal}
+            className="px-4 py-2 bg-gray-500 cursor-pointer text-white font-semibold rounded-md hover:bg-gray-800"
           >
             Cancel
           </button>
